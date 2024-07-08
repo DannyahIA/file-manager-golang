@@ -17,8 +17,6 @@ type File struct {
 	Items        []File `json:"items,omitempty"`
 }
 
-var Files []File
-
 func convertSizeToMB(size int64) string {
 	const (
 		_  = iota
@@ -89,4 +87,50 @@ func GetRootItems() ([]File, error) {
 
 func CreateFolder(folderName string) error {
 	return os.Mkdir(filepath.Join(dirName, folderName), 0755)
+}
+
+func DeleteItem(files []File, path string) error {
+	exeDir, err := os.Executable()
+	for i := range files {
+		if files[i].Path == path {
+			if files[i].IsFolder {
+				err := os.RemoveAll(path)
+				if err != nil {
+					return err
+				}
+			} else {
+				if err != nil {
+					return err
+				}
+
+				err = os.Remove(filepath.Join(filepath.Base(exeDir), path))
+				if err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+
+		for j := range files[i].Items {
+			if files[i].Items[j].Path == path {
+				if files[i].IsFolder {
+					err := os.RemoveAll(path)
+					if err != nil {
+						return err
+					}
+				} else {
+					if err != nil {
+						return err
+					}
+
+					err = os.Remove(filepath.Join(filepath.Base(exeDir), path))
+					if err != nil {
+						return err
+					}
+				}
+				return nil
+			}
+		}
+	}
+	return fmt.Errorf("file or directory not found")
 }
