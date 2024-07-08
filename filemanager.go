@@ -47,6 +47,11 @@ func GetRootItems() ([]File, error) {
 			return err
 		}
 
+		// Skip the root folder
+		if path == dirName {
+			return nil
+		}
+
 		fileInfo, err := d.Info()
 		if err != nil {
 			return err
