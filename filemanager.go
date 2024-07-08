@@ -11,7 +11,7 @@ const dirName = "./drive"
 type File struct {
 	Name         string `json:"name,omitempty"`
 	Path         string `json:"path,omitempty"`
-	IsFolder     bool   `json:"is_folder,omitempty"`
+	IsFolder     bool   `json:"is_folder"`
 	Size         string `json:"size"`
 	DataModified string `json:"data_modified,omitempty"`
 	Items        []File `json:"items,omitempty"`
@@ -47,10 +47,10 @@ func GetRootItems() ([]File, error) {
 			return err
 		}
 
-		// Skip the root folder
-		if path == dirName {
-			return nil
-		}
+		// // Skip the root folder
+		// if path == dirName {
+		// 	return nil
+		// }
 
 		fileInfo, err := d.Info()
 		if err != nil {
