@@ -1,3 +1,3 @@
-module github.com/DannyahIA/file-manager-golang
+module github.com/DannyahIA/filemanager
 
 go 1.21.3
