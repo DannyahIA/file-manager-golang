@@ -13,7 +13,7 @@ type File struct {
 	Path         string `json:"path,omitempty"`
 	IsFolder     bool   `json:"is_folder,omitempty"`
 	Size         string `json:"size"`
-	LastModified string `json:"last_modified,omitempty"`
+	DataModified string `json:"data_modified,omitempty"`
 	Items        []File `json:"items,omitempty"`
 }
 
@@ -59,7 +59,7 @@ func GetRootItems() ([]File, error) {
 				IsFolder:     true,
 				Items:        nil,
 				Size:         convertSizeToMB(fileInfo.Size()),
-				LastModified: fileInfo.ModTime().String(),
+				DataModified: fileInfo.ModTime().String(),
 			})
 		} else {
 			parentDir := filepath.ToSlash(filepath.Dir(path))
@@ -71,7 +71,7 @@ func GetRootItems() ([]File, error) {
 						IsFolder:     false,
 						Items:        nil,
 						Size:         convertSizeToMB(fileInfo.Size()),
-						LastModified: fileInfo.ModTime().String(),
+						DataModified: fileInfo.ModTime().String(),
 					})
 					break
 				}
