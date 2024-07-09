@@ -104,10 +104,21 @@ func GetFolderItems(folderPath string) ([]File, error) {
 			return err
 		}
 
+		if d.IsDir() {
+			items = append(items, File{
+				Name:         d.Name(),
+				Path:         filepath.ToSlash(path),
+				IsFolder:     true,
+				Size:         convertSizeToMB(fileInfo.Size()),
+				DataModified: fileInfo.ModTime().String(),
+			})
+			return filepath.SkipDir
+		}
+
 		items = append(items, File{
 			Name:         d.Name(),
 			Path:         filepath.ToSlash(path),
-			IsFolder:     d.IsDir(),
+			IsFolder:     false,
 			Size:         convertSizeToMB(fileInfo.Size()),
 			DataModified: fileInfo.ModTime().String(),
 		})
