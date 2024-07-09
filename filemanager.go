@@ -57,7 +57,7 @@ func GetRootFolders() ([]File, error) {
 			return err
 		}
 
-		if d.IsDir() {
+		if d.IsDir() && filepath.Dir(path) == DefaultRoot {
 			folders = append(folders, File{
 				Name:         d.Name(),
 				Path:         filepath.ToSlash(path),
