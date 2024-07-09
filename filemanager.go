@@ -5,17 +5,18 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 var DefaultRoot = "./drive"
 
 type File struct {
-	Name         string `json:"name,omitempty"`
-	Path         string `json:"path,omitempty"`
-	IsFolder     bool   `json:"is_folder"`
-	Size         string `json:"size"`
-	DataModified string `json:"data_modified,omitempty"`
-	Items        []File `json:"items,omitempty"`
+	Name         string    `json:"name"`
+	Path         string    `json:"path"`
+	IsFolder     bool      `json:"is_folder"`
+	Size         string    `json:"size"`
+	Extension    string    `json:"extension"`
+	DataModified time.Time `json:"data_modified"`
 }
 
 func convertSizeToMB(size int64) string {
@@ -72,9 +73,8 @@ func GetRootFolders() ([]File, error) {
 				Name:         d.Name(),
 				Path:         filepath.ToSlash(path),
 				IsFolder:     true,
-				Items:        nil,
 				Size:         convertSizeToMB(fileInfo.Size()),
-				DataModified: fileInfo.ModTime().String(),
+				DataModified: fileInfo.ModTime(),
 			})
 		}
 
@@ -83,12 +83,13 @@ func GetRootFolders() ([]File, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	return folders, nil
 }
 
 func GetFolderItems(folderPath string) ([]File, error) {
 	var items []File
+	var folders []File
+	var files []File
 
 	err := filepath.WalkDir(folderPath, func(path string, d os.DirEntry, err error) error {
 		if err != nil {
@@ -105,22 +106,22 @@ func GetFolderItems(folderPath string) ([]File, error) {
 		}
 
 		if d.IsDir() {
-			items = append(items, File{
+			folders = append(folders, File{
 				Name:         d.Name(),
 				Path:         filepath.ToSlash(path),
 				IsFolder:     true,
 				Size:         convertSizeToMB(fileInfo.Size()),
-				DataModified: fileInfo.ModTime().String(),
+				DataModified: fileInfo.ModTime(),
 			})
 			return filepath.SkipDir
 		}
 
-		items = append(items, File{
+		files = append(files, File{
 			Name:         d.Name(),
 			Path:         filepath.ToSlash(path),
 			IsFolder:     false,
 			Size:         convertSizeToMB(fileInfo.Size()),
-			DataModified: fileInfo.ModTime().String(),
+			DataModified: fileInfo.ModTime(),
 		})
 
 		return nil
@@ -129,6 +130,7 @@ func GetFolderItems(folderPath string) ([]File, error) {
 		return nil, err
 	}
 
+	items = append(folders, files...)
 	return items, nil
 }
 
@@ -156,27 +158,6 @@ func DeleteItem(files []File, path string) error {
 				}
 			}
 			return nil
-		}
-
-		for j := range files[i].Items {
-			if files[i].Items[j].Path == path {
-				if files[i].IsFolder {
-					err := os.RemoveAll(path)
-					if err != nil {
-						return err
-					}
-				} else {
-					if err != nil {
-						return err
-					}
-
-					err = os.Remove(filepath.Join(filepath.Base(exeDir), path))
-					if err != nil {
-						return err
-					}
-				}
-				return nil
-			}
 		}
 	}
 	return fmt.Errorf("file or directory not found")
