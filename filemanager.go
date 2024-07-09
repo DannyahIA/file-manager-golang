@@ -85,6 +85,10 @@ func GetFolderItems(folderPath string) ([]File, error) {
 			return err
 		}
 
+		if path == folderPath {
+			return nil
+		}
+
 		fileInfo, err := d.Info()
 		if err != nil {
 			return err
