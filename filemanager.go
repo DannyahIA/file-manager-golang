@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 var DefaultRoot = "./drive"
@@ -52,12 +53,21 @@ func GetRootFolders() ([]File, error) {
 			return nil
 		}
 
+		// Check if the path is a subdirectory of DefaultRoot
+		relPath, err := filepath.Rel(DefaultRoot, path)
+		if err != nil {
+			return err
+		}
+		if strings.Contains(relPath, string(filepath.Separator)) {
+			return filepath.SkipDir
+		}
+
 		fileInfo, err := d.Info()
 		if err != nil {
 			return err
 		}
 
-		if d.IsDir() && filepath.Dir(path) == DefaultRoot {
+		if d.IsDir() {
 			folders = append(folders, File{
 				Name:         d.Name(),
 				Path:         filepath.ToSlash(path),
