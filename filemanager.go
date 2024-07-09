@@ -139,7 +139,6 @@ func CreateFolder(folderName string) error {
 }
 
 func DeleteItem(files []File, path string) error {
-	exeDir, err := os.Executable()
 	for i := range files {
 		if files[i].Path == path {
 			if files[i].IsFolder {
@@ -148,11 +147,7 @@ func DeleteItem(files []File, path string) error {
 					return err
 				}
 			} else {
-				if err != nil {
-					return err
-				}
-
-				err = os.Remove(filepath.Join(filepath.Base(exeDir), path))
+				err := os.Remove(filepath.Join(".", path))
 				if err != nil {
 					return err
 				}
