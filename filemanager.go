@@ -41,12 +41,15 @@ func convertSizeToMB(size int64) string {
 }
 
 func GetRootItems() ([]File, error) {
+	var folders []File
 	var files []File
+
 	err := filepath.WalkDir(dirName, func(path string, d os.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 
+		// Skip the root folder
 		if path == dirName {
 			return nil
 		}
@@ -58,10 +61,11 @@ func GetRootItems() ([]File, error) {
 
 		parentDir := filepath.ToSlash(filepath.Dir(path))
 		if !d.IsDir() {
+			// Process file
 			found := false
-			for i := range files {
-				if files[i].Path == parentDir {
-					files[i].Items = append(files[i].Items, File{
+			for i := range folders {
+				if folders[i].Path == parentDir {
+					folders[i].Items = append(folders[i].Items, File{
 						Name:         d.Name(),
 						Path:         filepath.ToSlash(path),
 						IsFolder:     false,
@@ -74,6 +78,7 @@ func GetRootItems() ([]File, error) {
 				}
 			}
 			if !found {
+				// If the parent directory is not found, it means it's a file in the root directory
 				files = append(files, File{
 					Name:         d.Name(),
 					Path:         filepath.ToSlash(path),
@@ -84,7 +89,8 @@ func GetRootItems() ([]File, error) {
 				})
 			}
 		} else {
-			files = append(files, File{
+			// Process folder
+			folders = append(folders, File{
 				Name:         d.Name(),
 				Path:         filepath.ToSlash(path),
 				IsFolder:     true,
@@ -98,7 +104,13 @@ func GetRootItems() ([]File, error) {
 	if err != nil {
 		return nil, err
 	}
-	return files, nil
+
+	// Combine folders and files with folders first
+	var result []File
+	result = append(result, folders...)
+	result = append(result, files...)
+
+	return result, nil
 }
 
 func CreateFolder(folderName string) error {
