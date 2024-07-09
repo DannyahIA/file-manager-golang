@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 )
 
-const dirName = "./drive"
+var DefaultDir = "./drive"
 
 type File struct {
 	Name         string `json:"name,omitempty"`
@@ -42,15 +42,15 @@ func convertSizeToMB(size int64) string {
 
 func GetRootItems() ([]File, error) {
 	var files []File
-	err := filepath.WalkDir(dirName, func(path string, d os.DirEntry, err error) error {
+	err := filepath.WalkDir(DefaultDir, func(path string, d os.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 
-		// // Skip the root folder
-		// if path == dirName {
-		// 	return nil
-		// }
+		// Skip the root folder
+		if path == DefaultDir {
+			return nil
+		}
 
 		fileInfo, err := d.Info()
 		if err != nil {
@@ -91,7 +91,7 @@ func GetRootItems() ([]File, error) {
 }
 
 func CreateFolder(folderName string) error {
-	return os.Mkdir(filepath.Join(dirName, folderName), 0755)
+	return os.Mkdir(filepath.Join(DefaultDir, folderName), 0755)
 }
 
 func DeleteItem(files []File, path string) error {
