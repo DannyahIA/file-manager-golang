@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 )
 
-const dirName = "./drive"
+var DefaultRoot = "./drive"
 
 type File struct {
 	Name         string `json:"name,omitempty"`
@@ -40,16 +40,15 @@ func convertSizeToMB(size int64) string {
 	return fmt.Sprintf("%d bytes", size)
 }
 
-func GetRootItems() ([]File, error) {
+func GetRootFolders() ([]File, error) {
 	var folders []File
-	var files []File
 
-	err := filepath.WalkDir(dirName, func(path string, d os.DirEntry, err error) error {
+	err := filepath.WalkDir(DefaultRoot, func(path string, d os.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 
-		if path == dirName {
+		if path == DefaultRoot {
 			return nil
 		}
 
@@ -58,84 +57,58 @@ func GetRootItems() ([]File, error) {
 			return err
 		}
 
-		parentDir := filepath.ToSlash(filepath.Dir(path))
-		if !d.IsDir() {
-			found := false
-			for i := range folders {
-				if folders[i].Path == parentDir {
-					folders[i].Items = append(folders[i].Items, File{
-						Name:         d.Name(),
-						Path:         filepath.ToSlash(path),
-						IsFolder:     false,
-						Items:        nil,
-						Size:         convertSizeToMB(fileInfo.Size()),
-						DataModified: fileInfo.ModTime().String(),
-					})
-					found = true
-					break
-				}
-			}
-			if !found {
-				files = append(files, File{
-					Name:         d.Name(),
-					Path:         filepath.ToSlash(path),
-					IsFolder:     false,
-					Items:        nil,
-					Size:         convertSizeToMB(fileInfo.Size()),
-					DataModified: fileInfo.ModTime().String(),
-				})
-			}
-		} else {
-			found := false
-			for i := range folders {
-				if folders[i].Path == parentDir {
-					folders[i].Items = append(folders[i].Items, File{
-						Name:         d.Name(),
-						Path:         filepath.ToSlash(path),
-						IsFolder:     true,
-						Items:        nil,
-						Size:         convertSizeToMB(fileInfo.Size()),
-						DataModified: fileInfo.ModTime().String(),
-					})
-					found = true
-					break
-				}
-			}
-			if !found {
-				folders = append(folders, File{
-					Name:         d.Name(),
-					Path:         filepath.ToSlash(path),
-					IsFolder:     true,
-					Items:        nil,
-					Size:         convertSizeToMB(fileInfo.Size()),
-					DataModified: fileInfo.ModTime().String(),
-				})
-			}
+		if d.IsDir() {
+			folders = append(folders, File{
+				Name:         d.Name(),
+				Path:         filepath.ToSlash(path),
+				IsFolder:     true,
+				Items:        nil,
+				Size:         convertSizeToMB(fileInfo.Size()),
+				DataModified: fileInfo.ModTime().String(),
+			})
 		}
+
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	for i := range folders {
-		for j := range folders[i].Items {
-			if folders[i].Items[j].IsFolder {
-				folders[i].Items = nil
-				break
-			}
+	return folders, nil
+}
+
+func GetFolderItems(folderPath string) ([]File, error) {
+	var items []File
+
+	err := filepath.WalkDir(folderPath, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return err
 		}
+
+		fileInfo, err := d.Info()
+		if err != nil {
+			return err
+		}
+
+		items = append(items, File{
+			Name:         d.Name(),
+			Path:         filepath.ToSlash(path),
+			IsFolder:     d.IsDir(),
+			Size:         convertSizeToMB(fileInfo.Size()),
+			DataModified: fileInfo.ModTime().String(),
+		})
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
 	}
 
-	var result []File
-	result = append(result, folders...)
-	result = append(result, files...)
-
-	return result, nil
+	return items, nil
 }
 
 func CreateFolder(folderName string) error {
-	return os.Mkdir(filepath.Join(dirName, folderName), 0755)
+	return os.Mkdir(filepath.Join(DefaultRoot, folderName), 0755)
 }
 
 func DeleteItem(files []File, path string) error {
