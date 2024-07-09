@@ -41,8 +41,8 @@ func convertSizeToMB(size int64) string {
 }
 
 func GetRootItems() ([]File, error) {
-	var rootFiles []File
-	dirMap := make(map[string]*File)
+	var folders []File
+	var files []File
 
 	err := filepath.WalkDir(dirName, func(path string, d os.DirEntry, err error) error {
 		if err != nil {
@@ -59,51 +59,74 @@ func GetRootItems() ([]File, error) {
 			return err
 		}
 
-		currentFile := File{
-			Name:         d.Name(),
-			Path:         filepath.ToSlash(path),
-			IsFolder:     d.IsDir(),
-			Items:        nil,
-			Size:         convertSizeToMB(fileInfo.Size()),
-			DataModified: fileInfo.ModTime().String(),
-		}
-
 		parentDir := filepath.ToSlash(filepath.Dir(path))
-		if parentDir == filepath.ToSlash(dirName) {
-			// It's a top-level item
-			rootFiles = append(rootFiles, currentFile)
-			if currentFile.IsFolder {
-				dirMap[currentFile.Path] = &rootFiles[len(rootFiles)-1]
-			}
-		} else {
-			// It's a sub-item
-			if parent, found := dirMap[parentDir]; found {
-				parent.Items = append(parent.Items, currentFile)
-				if currentFile.IsFolder {
-					dirMap[currentFile.Path] = &parent.Items[len(parent.Items)-1]
+		if !d.IsDir() {
+			// Process file
+			found := false
+			for i := range folders {
+				if folders[i].Path == parentDir {
+					folders[i].Items = append(folders[i].Items, File{
+						Name:         d.Name(),
+						Path:         filepath.ToSlash(path),
+						IsFolder:     false,
+						Items:        nil,
+						Size:         convertSizeToMB(fileInfo.Size()),
+						DataModified: fileInfo.ModTime().String(),
+					})
+					found = true
+					break
 				}
 			}
+			if !found {
+				// If the parent directory is not found, it means it's a file in the root directory
+				files = append(files, File{
+					Name:         d.Name(),
+					Path:         filepath.ToSlash(path),
+					IsFolder:     false,
+					Items:        nil,
+					Size:         convertSizeToMB(fileInfo.Size()),
+					DataModified: fileInfo.ModTime().String(),
+				})
+			}
+		} else {
+			// Process folder
+			found := false
+			for i := range folders {
+				if folders[i].Path == parentDir {
+					folders[i].Items = append(folders[i].Items, File{
+						Name:         d.Name(),
+						Path:         filepath.ToSlash(path),
+						IsFolder:     true,
+						Items:        nil,
+						Size:         convertSizeToMB(fileInfo.Size()),
+						DataModified: fileInfo.ModTime().String(),
+					})
+					found = true
+					break
+				}
+			}
+			if !found {
+				// If the parent directory is not found, it means it's a folder in the root directory
+				folders = append(folders, File{
+					Name:         d.Name(),
+					Path:         filepath.ToSlash(path),
+					IsFolder:     true,
+					Items:        nil,
+					Size:         convertSizeToMB(fileInfo.Size()),
+					DataModified: fileInfo.ModTime().String(),
+				})
+			}
 		}
-
 		return nil
 	})
-
 	if err != nil {
 		return nil, err
 	}
 
-	// Separate folders and files at the root level
+	// Combine folders and files with folders first
 	var result []File
-	for _, file := range rootFiles {
-		if file.IsFolder {
-			result = append(result, file)
-		}
-	}
-	for _, file := range rootFiles {
-		if !file.IsFolder {
-			result = append(result, file)
-		}
-	}
+	result = append(result, folders...)
+	result = append(result, files...)
 
 	return result, nil
 }
