@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 )
 
-var DefaultDir = "./drive"
+const DefaultDir = "./drive"
 
 type File struct {
 	Name         string `json:"name,omitempty"`
