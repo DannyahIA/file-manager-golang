@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 )
 
-const DefaultDir = "./drive"
+const dirName = "./drive"
 
 type File struct {
 	Name         string `json:"name,omitempty"`
@@ -42,13 +42,12 @@ func convertSizeToMB(size int64) string {
 
 func GetRootItems() ([]File, error) {
 	var files []File
-	err := filepath.WalkDir(DefaultDir, func(path string, d os.DirEntry, err error) error {
+	err := filepath.WalkDir(dirName, func(path string, d os.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 
-		// Skip the root folder
-		if path == DefaultDir {
+		if path == dirName {
 			return nil
 		}
 
@@ -57,17 +56,9 @@ func GetRootItems() ([]File, error) {
 			return err
 		}
 
-		if d.IsDir() {
-			files = append(files, File{
-				Name:         d.Name(),
-				Path:         filepath.ToSlash(path),
-				IsFolder:     true,
-				Items:        nil,
-				Size:         convertSizeToMB(fileInfo.Size()),
-				DataModified: fileInfo.ModTime().String(),
-			})
-		} else {
-			parentDir := filepath.ToSlash(filepath.Dir(path))
+		parentDir := filepath.ToSlash(filepath.Dir(path))
+		if !d.IsDir() {
+			found := false
 			for i := range files {
 				if files[i].Path == parentDir {
 					files[i].Items = append(files[i].Items, File{
@@ -78,9 +69,29 @@ func GetRootItems() ([]File, error) {
 						Size:         convertSizeToMB(fileInfo.Size()),
 						DataModified: fileInfo.ModTime().String(),
 					})
+					found = true
 					break
 				}
 			}
+			if !found {
+				files = append(files, File{
+					Name:         d.Name(),
+					Path:         filepath.ToSlash(path),
+					IsFolder:     false,
+					Items:        nil,
+					Size:         convertSizeToMB(fileInfo.Size()),
+					DataModified: fileInfo.ModTime().String(),
+				})
+			}
+		} else {
+			files = append(files, File{
+				Name:         d.Name(),
+				Path:         filepath.ToSlash(path),
+				IsFolder:     true,
+				Items:        nil,
+				Size:         convertSizeToMB(fileInfo.Size()),
+				DataModified: fileInfo.ModTime().String(),
+			})
 		}
 		return nil
 	})
@@ -91,7 +102,7 @@ func GetRootItems() ([]File, error) {
 }
 
 func CreateFolder(folderName string) error {
-	return os.Mkdir(filepath.Join(DefaultDir, folderName), 0755)
+	return os.Mkdir(filepath.Join(dirName, folderName), 0755)
 }
 
 func DeleteItem(files []File, path string) error {
