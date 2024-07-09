@@ -49,7 +49,6 @@ func GetRootItems() ([]File, error) {
 			return err
 		}
 
-		// Skip the root folder
 		if path == dirName {
 			return nil
 		}
@@ -61,7 +60,6 @@ func GetRootItems() ([]File, error) {
 
 		parentDir := filepath.ToSlash(filepath.Dir(path))
 		if !d.IsDir() {
-			// Process file
 			found := false
 			for i := range folders {
 				if folders[i].Path == parentDir {
@@ -78,7 +76,6 @@ func GetRootItems() ([]File, error) {
 				}
 			}
 			if !found {
-				// If the parent directory is not found, it means it's a file in the root directory
 				files = append(files, File{
 					Name:         d.Name(),
 					Path:         filepath.ToSlash(path),
@@ -89,7 +86,6 @@ func GetRootItems() ([]File, error) {
 				})
 			}
 		} else {
-			// Process folder
 			found := false
 			for i := range folders {
 				if folders[i].Path == parentDir {
@@ -106,7 +102,6 @@ func GetRootItems() ([]File, error) {
 				}
 			}
 			if !found {
-				// If the parent directory is not found, it means it's a folder in the root directory
 				folders = append(folders, File{
 					Name:         d.Name(),
 					Path:         filepath.ToSlash(path),
@@ -123,7 +118,15 @@ func GetRootItems() ([]File, error) {
 		return nil, err
 	}
 
-	// Combine folders and files with folders first
+	for i := range folders {
+		for j := range folders[i].Items {
+			if folders[i].Items[j].IsFolder {
+				folders[i].Items = nil
+				break
+			}
+		}
+	}
+
 	var result []File
 	result = append(result, folders...)
 	result = append(result, files...)
