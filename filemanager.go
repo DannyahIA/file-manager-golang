@@ -138,22 +138,17 @@ func CreateFolder(folderName string) error {
 	return os.Mkdir(filepath.Join(DefaultRoot, folderName), 0755)
 }
 
-func DeleteItem(files []File, path string) error {
-	for i := range files {
-		if files[i].Path == path {
-			if files[i].IsFolder {
-				err := os.RemoveAll(filepath.Join(".", path))
-				if err != nil {
-					return err
-				}
-			} else {
-				err := os.Remove(filepath.Join(".", path))
-				if err != nil {
-					return err
-				}
-			}
-			return nil
+func DeleteItem(is_folder bool, path string) error {
+	if is_folder {
+		err := os.RemoveAll(filepath.Join(".", path))
+		if err != nil {
+			return err
+		}
+	} else {
+		err := os.Remove(filepath.Join(".", path))
+		if err != nil {
+			return err
 		}
 	}
-	return fmt.Errorf("file or directory not found")
+	return nil
 }
