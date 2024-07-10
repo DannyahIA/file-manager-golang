@@ -152,3 +152,11 @@ func DeleteItem(is_folder bool, path string) error {
 	}
 	return nil
 }
+
+func RenameItem(path, newName string) error {
+	dir := filepath.Dir(path)
+	ext := filepath.Ext(path)
+	newPath := filepath.Join(dir, newName+ext)
+
+	return os.Rename(path, newPath)
+}
