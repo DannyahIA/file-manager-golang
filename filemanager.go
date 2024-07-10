@@ -142,7 +142,7 @@ func DeleteItem(files []File, path string) error {
 	for i := range files {
 		if files[i].Path == path {
 			if files[i].IsFolder {
-				err := os.RemoveAll(path)
+				err := os.RemoveAll(filepath.Join(".", path))
 				if err != nil {
 					return err
 				}
