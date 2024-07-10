@@ -138,8 +138,8 @@ func CreateFolder(folderName string) error {
 	return os.Mkdir(filepath.Join(DefaultRoot, folderName), 0755)
 }
 
-func DeleteItem(is_folder bool, path string) error {
-	if is_folder {
+func DeleteItem(isFolder bool, path string) error {
+	if isFolder {
 		err := os.RemoveAll(filepath.Join(".", path))
 		if err != nil {
 			return err
@@ -153,10 +153,15 @@ func DeleteItem(is_folder bool, path string) error {
 	return nil
 }
 
-func RenameItem(path, newName string) error {
+func RenameItem(isFolder bool, path, newName string) error {
 	dir := filepath.Dir(path)
-	ext := filepath.Ext(path)
-	newPath := filepath.Join(dir, newName+ext)
+	var newPath string
+	if !isFolder {
+		ext := filepath.Ext(path)
+		newPath = filepath.Join(dir, newName+ext)
+	} else {
+		newPath = filepath.Join(dir, newName)
+	}
 
 	return os.Rename(path, newPath)
 }
