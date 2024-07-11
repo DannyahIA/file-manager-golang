@@ -11,12 +11,12 @@ import (
 var DefaultRoot = "./drive"
 
 type File struct {
-	Name         string    `json:"name"`
-	Path         string    `json:"path"`
-	IsFolder     bool      `json:"is_folder"`
-	Size         string    `json:"size"`
-	Extension    string    `json:"extension"`
-	DataModified time.Time `json:"data_modified"`
+	Name         string `json:"name"`
+	Path         string `json:"path"`
+	IsFolder     bool   `json:"is_folder"`
+	Size         string `json:"size"`
+	Extension    string `json:"extension"`
+	DataModified string `json:"data_modified"`
 }
 
 func convertSizeToMB(size int64) string {
@@ -74,7 +74,7 @@ func GetRootFolders() ([]File, error) {
 				Path:         filepath.ToSlash(path),
 				IsFolder:     true,
 				Size:         convertSizeToMB(fileInfo.Size()),
-				DataModified: fileInfo.ModTime(),
+				DataModified: fileInfo.ModTime().Format(time.RFC3339),
 			})
 		}
 
@@ -111,7 +111,7 @@ func GetFolderItems(folderPath string) ([]File, error) {
 				Path:         filepath.ToSlash(path),
 				IsFolder:     true,
 				Size:         convertSizeToMB(fileInfo.Size()),
-				DataModified: fileInfo.ModTime(),
+				DataModified: fileInfo.ModTime().Format(time.RFC3339),
 			})
 			return filepath.SkipDir
 		}
@@ -121,7 +121,7 @@ func GetFolderItems(folderPath string) ([]File, error) {
 			Path:         filepath.ToSlash(path),
 			IsFolder:     false,
 			Size:         convertSizeToMB(fileInfo.Size()),
-			DataModified: fileInfo.ModTime(),
+			DataModified: fileInfo.ModTime().Format(time.RFC3339),
 		})
 
 		return nil
