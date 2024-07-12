@@ -153,17 +153,8 @@ func DeleteItem(isFolder bool, path string) error {
 	return nil
 }
 
-func RenameItem(isFolder bool, path, newName string) error {
-	dir := filepath.Dir(path)
-	var newPath string
-	if !isFolder {
-		ext := filepath.Ext(path)
-		newPath = filepath.Join(dir, newName+ext)
-	} else {
-		newPath = filepath.Join(dir, newName)
-	}
-
-	return os.Rename(path, newPath)
+func Rename(oldPath, newPath string) error {
+	return os.Rename(oldPath, newPath)
 }
 
 func Exists(path string) bool {
