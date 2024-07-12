@@ -165,3 +165,8 @@ func RenameItem(isFolder bool, path, newName string) error {
 
 	return os.Rename(path, newPath)
 }
+
+func Exists(path string) bool {
+	_, err := os.Stat(path)
+	return !os.IsNotExist(err)
+}
