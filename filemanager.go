@@ -161,3 +161,38 @@ func Exists(path string) bool {
 	_, err := os.Stat(path)
 	return !os.IsNotExist(err)
 }
+
+func Search(value string) ([]File, error) {
+	var result []File
+
+	err := filepath.WalkDir(DefaultRoot, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if path == DefaultRoot {
+			return nil
+		}
+
+		fileInfo, err := d.Info()
+		if err != nil {
+			return err
+		}
+
+		if strings.Contains(d.Name(), value) {
+			result = append(result, File{
+				Name:         fileInfo.Name(),
+				Path:         filepath.ToSlash(path),
+				IsFolder:     d.IsDir(),
+				Size:         convertSizeToMB(fileInfo.Size()),
+				DataModified: fileInfo.ModTime().Format(time.RFC3339),
+			})
+		}
+		return nil
+	})
+	if err != nil {
+		return result, err
+	}
+
+	return result, nil
+}
