@@ -179,7 +179,7 @@ func Search(value string) ([]File, error) {
 			return err
 		}
 
-		if strings.Contains(d.Name(), value) {
+		if strings.Contains(strings.ToLower(d.Name()), value) {
 			result = append(result, File{
 				Name:         fileInfo.Name(),
 				Path:         filepath.ToSlash(path),
