@@ -121,6 +121,7 @@ func GetFolderItems(folderPath string) ([]File, error) {
 			Path:         filepath.ToSlash(path),
 			IsFolder:     false,
 			Size:         convertSizeToMB(fileInfo.Size()),
+			Extension:    filepath.Ext(d.Name()),
 			DataModified: fileInfo.ModTime().Format(time.RFC3339),
 		})
 
