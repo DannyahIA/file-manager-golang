@@ -135,8 +135,11 @@ func GetFolderItems(folderPath string) ([]File, error) {
 	return items, nil
 }
 
-func CreateFolder(folderName string) error {
-	return os.Mkdir(filepath.Join(DefaultRoot, folderName), 0755)
+func CreateFolder(path, folderName string) error {
+	if path != "" {
+		path = DefaultRoot
+	}
+	return os.Mkdir(filepath.Join(path, folderName), 0755)
 }
 
 func DeleteItem(isFolder bool, path string) error {
